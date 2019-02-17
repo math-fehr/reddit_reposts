@@ -1,4 +1,5 @@
 use serde::{Deserialize};
+use std::hash::{Hash, Hasher};
 
 pub use crate::edit_state::EditState;
 
@@ -7,27 +8,41 @@ pub use crate::edit_state::EditState;
  */
 #[derive(Deserialize, Debug, Clone)]
 pub struct RedditComment {
-    author: String,
-    subreddit_id: String,
-    parent_id: String,
-    gilded: i32,
-    created_utc: String,
-    edited: EditState,
-    archived: bool,
-    link_id: String,
-    body: String,
-    author_flair_text: Option<String>,
-    distinguished: Option<String>,
-    controversiality: i32,
-    ups: i32,
-    score_hidden: bool,
-    name: String,
-    subreddit: String,
-    downs: i32,
-    score: i32,
-    author_flair_css_class: Option<String>,
-    retrieved_on: i32,
-    id: String,
+    pub author: String,
+    pub subreddit_id: String,
+    pub parent_id: String,
+    pub gilded: i32,
+    pub created_utc: String,
+    pub edited: EditState,
+    pub archived: bool,
+    pub link_id: String,
+    pub body: String,
+    pub author_flair_text: Option<String>,
+    pub distinguished: Option<String>,
+    pub controversiality: i32,
+    pub ups: i32,
+    pub score_hidden: bool,
+    pub name: String,
+    pub subreddit: String,
+    pub downs: i32,
+    pub score: i32,
+    pub author_flair_css_class: Option<String>,
+    pub retrieved_on: i32,
+    pub id: String,
+}
+
+impl PartialEq for RedditComment {
+    fn eq(&self, other: &RedditComment) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for RedditComment {}
+
+impl Hash for RedditComment {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
 
 #[cfg(test)]

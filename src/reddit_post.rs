@@ -1,87 +1,112 @@
 use crate::edit_state::EditState;
 use serde::Deserialize;
+use std::hash::{Hash, Hasher};
 
 /**
  * A struct representing a reddit post.
  */
 #[derive(Deserialize, Debug, Clone)]
 pub struct RedditPost {
-    num_reports: Option<i32>,
-    title: String,
-    subreddit_id: String,
-    created: i32,
-    over_18: bool,
-    hidden: bool,
-    author_flair_text: Option<String>,
-    link_flair_text: Option<String>,
-    id: String,
-    distinguished: Option<String>,
-    domain: String,
-    author: Option<String>,
-    link_flair_css_class: Option<String>,
-    name: String,
-    media: Option<Media>,
-    selftext: String,
-    likes: Option<()>,
-    thumbnail: String,
-    selftext_html: Option<String>,
-    subreddit: String,
-    banned_by: Option<()>,
-    permalink: String,
-    url: String,
-    saved: bool,
-    num_comments: i32,
-    promoted: Option<bool>,
-    clicked: bool,
-    edited: EditState,
-    author_flair_css_class: Option<String>,
-    approved_by: Option<()>,
-    is_self: bool,
-    ups: i32,
-    created_utc: i32,
-    media_embed: MediaEmbed,
-    downs: i32,
-    score: i32,
+    pub num_reports: Option<i32>,
+    pub title: String,
+    pub subreddit_id: String,
+    pub created: i32,
+    pub over_18: bool,
+    pub hidden: bool,
+    pub author_flair_text: Option<String>,
+    pub link_flair_text: Option<String>,
+    pub id: String,
+    pub distinguished: Option<String>,
+    pub domain: String,
+    pub author: Option<String>,
+    pub link_flair_css_class: Option<String>,
+    pub name: String,
+    pub media: Option<Media>,
+    pub selftext: String,
+    pub likes: Option<()>,
+    pub thumbnail: String,
+    pub selftext_html: Option<String>,
+    pub subreddit: String,
+    pub banned_by: Option<()>,
+    pub permalink: String,
+    pub url: String,
+    pub saved: bool,
+    pub num_comments: i32,
+    pub promoted: Option<bool>,
+    pub clicked: bool,
+    pub edited: EditState,
+    pub author_flair_css_class: Option<String>,
+    pub approved_by: Option<()>,
+    pub is_self: bool,
+    pub ups: i32,
+    pub created_utc: i32,
+    pub media_embed: MediaEmbed,
+    pub downs: i32,
+    pub score: i32,
+}
+
+impl RedditPost {
+    pub fn get_linked_url(&self) -> Option<String> {
+        if self.url == self.permalink {
+            None
+        } else {
+            Some(self.url.clone())
+        }
+    }
+}
+
+impl PartialEq for RedditPost {
+    fn eq(&self, other: &RedditPost) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for RedditPost {}
+
+impl Hash for RedditPost {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct Media {
+pub struct Media {
     #[serde(rename = "type")]
-    type_: String,
-    content: Option<String>,
-    width: Option<i32>,
-    height: Option<i32>,
-    oembed: Option<Oembed>,
+    pub type_: String,
+    pub content: Option<String>,
+    pub width: Option<i32>,
+    pub height: Option<i32>,
+    pub oembed: Option<Oembed>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct Oembed {
-    thumbnail_width: Option<i32>,
-    width: i32,
-    author_url: Option<String>,
-    height: i32,
-    provider_url: String,
-    title: Option<String>,
-    description: Option<String>,
-    thumbnail_height: Option<i32>,
-    author_name: Option<String>,
-    thumbnail_url: Option<String>,
-    html: String,
-    version: String,
-    url: Option<String>,
+pub struct Oembed {
+    pub thumbnail_width: Option<i32>,
+    pub width: i32,
+    pub author_url: Option<String>,
+    pub height: i32,
+    pub provider_url: String,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub thumbnail_height: Option<i32>,
+    pub author_name: Option<String>,
+    pub thumbnail_url: Option<String>,
+    pub html: String,
+    pub version: String,
+    pub url: Option<String>,
     #[serde(rename = "type")]
-    type_: String,
-    provider_name: String,
-    cache_age: Option<i32>,
-    html5: Option<String>,
+    pub type_: String,
+    pub provider_name: String,
+    pub cache_age: Option<i32>,
+    pub html5: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct MediaEmbed {
-    scrolling: Option<bool>,
-    height: Option<i32>,
-    width: Option<i32>,
-    content: Option<String>,
+pub struct MediaEmbed {
+    pub scrolling: Option<bool>,
+    pub height: Option<i32>,
+    pub width: Option<i32>,
+    pub content: Option<String>,
 }
 
 #[cfg(test)]
