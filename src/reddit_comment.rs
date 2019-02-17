@@ -5,7 +5,7 @@ pub use crate::edit_state::EditState;
 /**
  * A struct representing a reddit comment.
  */
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct RedditComment {
     author: String,
     subreddit_id: String,

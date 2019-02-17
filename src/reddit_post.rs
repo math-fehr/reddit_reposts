@@ -4,7 +4,7 @@ use serde::Deserialize;
 /**
  * A struct representing a reddit post.
  */
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct RedditPost {
     num_reports: Option<i32>,
     title: String,
@@ -44,7 +44,7 @@ pub struct RedditPost {
     score: i32,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 struct Media {
     #[serde(rename = "type")]
     type_: String,
@@ -54,7 +54,7 @@ struct Media {
     oembed: Option<Oembed>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 struct Oembed {
     thumbnail_width: Option<i32>,
     width: i32,
@@ -76,7 +76,7 @@ struct Oembed {
     html5: Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 struct MediaEmbed {
     scrolling: Option<bool>,
     height: Option<i32>,

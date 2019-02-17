@@ -5,7 +5,7 @@ use serde::{Deserialize, Deserializer};
 /**
  * A struct representing the edited field in a reddit comment
  */
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EditState {
     Bool(bool),
     UTC(u32),
