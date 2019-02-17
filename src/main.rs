@@ -1,12 +1,17 @@
 mod reddit_comment;
+mod reddit_post;
+mod edit_state;
+mod possible_types;
 
+use crate::possible_types::*;
 use crate::reddit_comment::RedditComment;
+use crate::reddit_post::RedditPost;
 use std::io::{self, BufReader};
 use std::io::prelude::*;
 use std::fs::File;
 
 fn main() {
-    let f = File::open("datasets/RC_2011-01").unwrap();
+    let f = File::open("datasets/RC_2011-02").unwrap();
     let f = BufReader::new(f);
 
     for line in f.lines() {
@@ -15,6 +20,6 @@ fn main() {
         if result.is_err() {
             println!("{}", line);
         }
+        result.unwrap();
     }
-    println!("Hello, world!");
 }

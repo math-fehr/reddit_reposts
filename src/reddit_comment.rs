@@ -1,73 +1,33 @@
-use serde::de::{self, Visitor};
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize};
+
+pub use crate::edit_state::EditState;
 
 /**
  * A struct representing a reddit comment.
  */
 #[derive(Deserialize, Debug)]
 pub struct RedditComment {
-    controversiality: u32,
-    body: String,
-    subreddit_id: String,
-    link_id: String,
-    subreddit: String,
-    score: i32,
-    ups: i32,
-    author_flair_css_class: Option<String>,
-    created_utc: String,
-    author_flair_text: Option<String>,
     author: String,
-    id: String,
-    edited: EditState,
+    subreddit_id: String,
     parent_id: String,
-    gilded: u32,
+    gilded: i32,
+    created_utc: String,
+    edited: EditState,
+    archived: bool,
+    link_id: String,
+    body: String,
+    author_flair_text: Option<String>,
     distinguished: Option<String>,
-    retrieved_on: u32,
-}
-
-/**
- * A struct representing the edited field in a reddit comment
- */
-#[derive(Debug)]
-pub enum EditState {
-    Bool(bool),
-    UTC(u32),
-}
-
-/**
-* Visitor pattern to deserialize EditState
-*/
-struct EditStateVisitor;
-
-impl<'de> Visitor<'de> for EditStateVisitor {
-    type Value = EditState;
-
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        formatter.write_str("a boolean or an unsigned 32-bits integer")
-    }
-
-    fn visit_bool<E>(self, value: bool) -> Result<EditState, E>
-    where
-        E: de::Error,
-    {
-        Ok(EditState::Bool(value))
-    }
-
-    fn visit_u64<E>(self, value: u64) -> Result<EditState, E>
-    where
-        E: de::Error,
-    {
-        Ok(EditState::UTC(value as u32))
-    }
-}
-
-impl<'de> Deserialize<'de> for EditState {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_any(EditStateVisitor)
-    }
+    controversiality: i32,
+    ups: i32,
+    score_hidden: bool,
+    name: String,
+    subreddit: String,
+    downs: i32,
+    score: i32,
+    author_flair_css_class: Option<String>,
+    retrieved_on: i32,
+    id: String,
 }
 
 #[cfg(test)]
