@@ -1,4 +1,4 @@
-//! Contains different functions that can give statistics over subreddits
+//! Contains different functions that can give interesting information
 
 #![allow(dead_code)]
 use crate::reddit_post::*;
