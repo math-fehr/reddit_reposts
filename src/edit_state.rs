@@ -1,19 +1,16 @@
+//! Contain a struct representing the edited field of a reddit post or comment
+
 use serde::de::{self, Visitor};
 use serde::{Deserialize, Deserializer};
 
-
-/**
- * A struct representing the edited field in a reddit comment
- */
+/// A struct representing the edited field in a reddit comment or post
 #[derive(Debug, Clone)]
 pub enum EditState {
     Bool(bool),
     UTC(u32),
 }
 
-/**
- * Visitor pattern to deserialize EditState
- */
+/// Visitor pattern to deserialize EditState
 struct EditStateVisitor;
 
 impl<'de> Visitor<'de> for EditStateVisitor {
