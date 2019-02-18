@@ -1,3 +1,5 @@
+//! Get the possible fields taken by multiple JSON objects
+
 use serde_json::{Value};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
