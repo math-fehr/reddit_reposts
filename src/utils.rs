@@ -1,3 +1,5 @@
+//! Set of some useful functions
+
 use std::time::{Duration, Instant};
 
 /// Measure the execution time of the given closure
