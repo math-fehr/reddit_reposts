@@ -5,38 +5,29 @@ use crate::reddit_post::*;
 pub use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
-/// Get the number of posts made per subreddit
-pub fn get_number_of_posts_per_subreddit<IT>(iterator: IT) -> HashMap<String, i32>
-where
-    IT: Iterator<Item = RedditPost>,
-{
-    let mut n_posts = HashMap::new();
-    for post in iterator {
-        if let Some(n_post) = n_posts.get_mut(&post.subreddit) {
-            *n_post += 1;
-        } else {
-            n_posts.insert(post.subreddit, 1);
-        }
-    }
-    n_posts
-}
-
 /// Get the all the present subreddits.
 /// Get only the n_subreddits subreddit with the most posts if given
 pub fn get_subreddits<IT>(iterator: IT, n_subreddits: Option<usize>) -> HashMap<String, i32>
 where
     IT: Iterator<Item = RedditPost>,
 {
-    let posts_per_subreddit = get_number_of_posts_per_subreddit(iterator);
-    let mut vec_posts_per_subreddit: Vec<_> = posts_per_subreddit.into_iter().collect();
-    vec_posts_per_subreddit.sort_by(|(_, n1), (_, n2)| n2.cmp(n1));
+    let mut subreddits = HashMap::new();
+    for post in iterator {
+        if let Some(n_post) = subreddits.get_mut(&post.subreddit) {
+            *n_post += 1;
+        } else {
+            subreddits.insert(post.subreddit, 1);
+        }
+    }
     if let Some(n_subreddits) = n_subreddits {
-        vec_posts_per_subreddit
+        let mut subreddits_vec: Vec<_> = subreddits.into_iter().collect();
+        subreddits_vec.sort_by(|(_, n1), (_, n2)| n2.cmp(n1));
+        subreddits_vec
             .into_iter()
             .take(n_subreddits)
             .collect()
     } else {
-        vec_posts_per_subreddit.into_iter().collect()
+        subreddits
     }
 }
 
