@@ -60,9 +60,10 @@ where
 }
 
 /// Get links per subreddits
-pub fn get_links_inside_subreddits<IT>(iterator: IT) -> HashMap<String, HashMap<String, i32>>
+pub fn get_links_inside_subreddits<T, IT>(iterator: IT) -> HashMap<String, HashMap<String, Vec<T>>>
 where
     IT: Iterator<Item = RedditPost>,
+    T: From<RedditPost>,
 {
     let mut map = HashMap::new();
     for post in iterator {
@@ -74,10 +75,10 @@ where
             }
             let subreddit_links = map.get_mut(&subreddit).unwrap();
             if !subreddit_links.contains_key(&url) {
-                subreddit_links.insert(url.clone(), 1);
+                subreddit_links.insert(url.clone(), vec![T::from(post)]);
             } else {
                 let entry = subreddit_links.get_mut(&url).unwrap();
-                *entry += 1;
+                entry.push(T::from(post));
             }
         }
     }
