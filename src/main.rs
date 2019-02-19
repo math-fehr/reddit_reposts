@@ -44,18 +44,44 @@ impl From<RedditPost> for SimpleRedditPost {
     }
 }
 
-fn main() {
+fn get_it() -> impl Iterator<Item=RedditPost> {
     let filepaths = vec!["datasets/RS_2017-01".to_string()];
-    let item_iterator = JSONItemIterator::new(filepaths.clone().into_iter());
-    let (time, subreddits): (_,_) = measure_time(|| get_subreddits(item_iterator, None));
-    /*let item_iterator = JSONItemIterator::<RedditPost,_>::new(filepaths.clone().into_iter());
-    let (exec_ms, map) = measure_time(|| get_links_inside_subreddits::<RedditPost,_>(item_iterator, Some(subreddits)));
-    let map: HashMap<_,_> = map.into_iter().map(|(_subreddit, urls)| {
-        (_subreddit, urls.into_iter().filter(|(_url, n)| n.len() > 10).collect::<HashMap<_,_>>())
-    })
-        .filter(|(_subreddit, urls)| urls.len() != 0).collect();
-    println!("{:#?}", map);
-    println!("{:?}", exec_ms);*/
-    println!("{:#?}", time);
-    //println!("{:#?}", possible_types::get_all_possible_types(file))
+    RedditPostItemIterator::new(filepaths.clone().into_iter())
+}
+
+fn main() {
+    let links = get_links::<SimpleRedditPost,_>(get_it().take(3_000_000));
+    println!("Got links");
+    let accross_subreddits = get_reposts_accross_subreddits(links);
+    println!("Got reposts");
+    let subreddits = get_subreddits(get_it().take(3_000_000), Some(100));
+    println!("Got subreddits");
+
+    let information_out = accross_subreddits.clone().into_iter().map(|(s,hm)| (s, hm.into_iter().fold(0, |sum, (_,i)| sum + i))).collect::<HashMap<_,_>>();
+    let mut information_in = HashMap::<String,_>::new();
+    for (s_in, hm) in accross_subreddits {
+        for (s_out, i) in hm {
+            if !information_in.contains_key(&s_out) {
+                information_in.insert(s_out.to_string(), i);
+            } else {
+                *information_in.get_mut(&s_out).unwrap() += i;
+            }
+        }
+    }
+    let mut vec = vec![];
+    for (subreddit, n_posts) in subreddits {
+        let n_in = *information_in.get(&subreddit).unwrap_or(&0) as f32;
+        let n_out = *information_out.get(&subreddit).unwrap_or(&0) as f32;
+        let n_posts = n_posts as f32;
+        vec.push((subreddit, n_in / n_posts, n_out / n_posts, n_posts));
+    }
+    vec.sort_by(|(_, in1, _, _), (_, in2, _, _)| {
+        in1.partial_cmp(&in2).unwrap()
+    });
+    println!("{:#?}", vec);
+    vec.sort_by(|(_, _, out1, _), (_, _, out2, _)| {
+        out1.partial_cmp(&out2).unwrap()
+    });
+    println!("{:#?}", vec);
+
 }

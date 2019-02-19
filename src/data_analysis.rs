@@ -6,26 +6,18 @@ pub use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use serde::Deserialize;
 
-#[derive(Deserialize, Clone, Debug)]
-pub struct Subreddit {
-    subreddit: Option<String>,
-}
-
 /// Get the all the present subreddits.
 /// Get only the n_subreddits subreddit with the most posts if given
 pub fn get_subreddits<IT>(iterator: IT, n_subreddits: Option<usize>) -> HashMap<String, i32>
 where
-    IT: Iterator<Item = Subreddit>,
+    IT: Iterator<Item = RedditPost>,
 {
     let mut subreddits = HashMap::new();
     for post in iterator {
-        if post.subreddit.is_none() {
-            continue;
-        }
-        if let Some(n_post) = subreddits.get_mut(post.subreddit.as_ref().unwrap()) {
+        if let Some(n_post) = subreddits.get_mut(&post.subreddit) {
             *n_post += 1;
         } else {
-            subreddits.insert(post.subreddit.unwrap(), 1);
+            subreddits.insert(post.subreddit, 1);
         }
     }
     if let Some(n_subreddits) = n_subreddits {
