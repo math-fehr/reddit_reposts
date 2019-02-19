@@ -13,6 +13,7 @@ pub enum ValueType {
     Bool,
     Number,
     String,
+    Array,
 }
 
 /// Possible types taken by multiple JSON objects
@@ -46,7 +47,9 @@ impl PossibleTypes {
             Value::String(_) => {
                 self.possible_primitive_types.insert(ValueType::String);
             }
-            Value::Array(_) => unimplemented!(),
+            Value::Array(_) => {
+                self.possible_primitive_types.insert(ValueType::Array);
+            }
             Value::Object(map) => {
                 // Add null option for evey fields not contained by this example
                 for (key, value) in self.possible_fields.iter_mut() {

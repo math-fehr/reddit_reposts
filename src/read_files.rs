@@ -36,7 +36,7 @@ where
 impl<S, FPI> Iterator for JSONItemIterator<S, FPI>
 where
     FPI: Iterator<Item = String>,
-    S: DeserializeOwned,
+    S: DeserializeOwned + std::fmt::Debug,
 {
     type Item = S;
 
@@ -44,7 +44,14 @@ where
         if let Some(reader) = &mut self.current_reader {
             if let Some(line) = reader.next() {
                 let line = line.unwrap();
-                return Some(serde_json::from_str::<S>(&line).unwrap());
+                let json = serde_json::from_str::<S>(&line);
+                if json.is_err() {
+                    println!("While parsing JSON {}", line);
+                    println!("Error found: {}", json.unwrap_err());
+                    panic!();
+                } else {
+                    return Some(json.unwrap());
+                }
             }
         }
         if let Some(filepath) = self.filepath_iterator.next() {

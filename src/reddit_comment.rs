@@ -1,5 +1,7 @@
 //! Contain struct representing a reddit comment.
 
+#![deprecated]
+
 use serde::Deserialize;
 use std::hash::{Hash, Hasher};
 

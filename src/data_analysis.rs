@@ -4,19 +4,28 @@
 use crate::reddit_post::*;
 pub use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use serde::Deserialize;
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct Subreddit {
+    subreddit: Option<String>,
+}
 
 /// Get the all the present subreddits.
 /// Get only the n_subreddits subreddit with the most posts if given
 pub fn get_subreddits<IT>(iterator: IT, n_subreddits: Option<usize>) -> HashMap<String, i32>
 where
-    IT: Iterator<Item = RedditPost>,
+    IT: Iterator<Item = Subreddit>,
 {
     let mut subreddits = HashMap::new();
     for post in iterator {
-        if let Some(n_post) = subreddits.get_mut(&post.subreddit) {
+        if post.subreddit.is_none() {
+            continue;
+        }
+        if let Some(n_post) = subreddits.get_mut(post.subreddit.as_ref().unwrap()) {
             *n_post += 1;
         } else {
-            subreddits.insert(post.subreddit, 1);
+            subreddits.insert(post.subreddit.unwrap(), 1);
         }
     }
     if let Some(n_subreddits) = n_subreddits {
@@ -51,18 +60,27 @@ where
 }
 
 /// Get links per subreddits
-pub fn get_links_inside_subreddits<T, IT>(iterator: IT) -> HashMap<String, HashMap<String, Vec<T>>>
+pub fn get_links_inside_subreddits<T, IT>(iterator: IT, subreddits: Option<HashSet<String>>) -> HashMap<String, HashMap<String, Vec<T>>>
 where
     IT: Iterator<Item = RedditPost>,
     T: From<RedditPost>,
 {
-    let mut map = HashMap::new();
+    let filter_subreddits = subreddits.is_some();
+    let mut map = if filter_subreddits {
+        subreddits.unwrap().into_iter().map(|subreddit| (subreddit, HashMap::new())).collect()
+    } else {
+        HashMap::new()
+    };
     for post in iterator {
         let url = post.get_linked_url();
         if let Some(url) = url {
             let subreddit = post.subreddit.clone();
             if !map.contains_key(&subreddit) {
-                map.insert(subreddit.clone(), HashMap::new());
+                if filter_subreddits {
+                    continue;
+                } else {
+                    map.insert(subreddit.clone(), HashMap::new());
+                }
             }
             let subreddit_links = map.get_mut(&subreddit).unwrap();
             if !subreddit_links.contains_key(&url) {
