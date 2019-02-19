@@ -4,7 +4,6 @@
 use crate::reddit_post::*;
 pub use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-use serde::Deserialize;
 
 /// Get the all the present subreddits.
 /// Get only the n_subreddits subreddit with the most posts if given
@@ -36,7 +35,7 @@ where
 pub fn get_links<T, IT>(iterator: IT) -> HashMap<String, HashSet<T>>
 where
     IT: Iterator<Item = RedditPost>,
-    T: From<RedditPost> + Hash + Eq,
+    T: From<RedditPost> + Hash + Eq
 {
     let mut map = HashMap::new();
     for post in iterator {

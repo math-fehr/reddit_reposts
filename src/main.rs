@@ -50,11 +50,11 @@ fn get_it() -> impl Iterator<Item=RedditPost> {
 }
 
 fn main() {
-    let links = get_links::<SimpleRedditPost,_>(get_it().take(3_000_000));
+    let links = get_links::<SimpleRedditPost,_>(get_it().take(6_000_000));
     println!("Got links");
     let accross_subreddits = get_reposts_accross_subreddits(links);
     println!("Got reposts");
-    let subreddits = get_subreddits(get_it().take(3_000_000), Some(100));
+    let subreddits = get_subreddits(get_it().take(6_000_000), Some(100));
     println!("Got subreddits");
 
     let information_out = accross_subreddits.clone().into_iter().map(|(s,hm)| (s, hm.into_iter().fold(0, |sum, (_,i)| sum + i))).collect::<HashMap<_,_>>();
@@ -64,7 +64,7 @@ fn main() {
             if !information_in.contains_key(&s_out) {
                 information_in.insert(s_out.to_string(), i);
             } else {
-                *information_in.get_mut(&s_out).unwrap() += i;
+                *information_in.get_mut(&s_out).unwrap() += 1;
             }
         }
     }

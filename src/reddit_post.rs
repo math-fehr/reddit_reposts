@@ -31,11 +31,12 @@ pub struct RedditPost {
 
 impl RedditPost {
     pub fn get_linked_url(&self) -> Option<String> {
-        if self.url == self.permalink {
-            None
-        } else {
-            Some(self.url.clone())
+        if self.url.as_bytes().len() == 22 + self.permalink.as_bytes().len() {
+            if self.url.as_bytes()[22..] == self.permalink.as_bytes()[..] {
+                return None;
+            }
         }
+        Some(self.url.clone())
     }
 }
 
