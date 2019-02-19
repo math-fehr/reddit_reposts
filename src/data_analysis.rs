@@ -59,6 +59,31 @@ where
     map
 }
 
+/// Get links per subreddits
+pub fn get_links_inside_subreddits<IT>(iterator: IT) -> HashMap<String, HashMap<String, i32>>
+where
+    IT: Iterator<Item = RedditPost>,
+{
+    let mut map = HashMap::new();
+    for post in iterator {
+        let url = post.get_linked_url();
+        if let Some(url) = url {
+            let subreddit = post.subreddit.clone();
+            if !map.contains_key(&subreddit) {
+                map.insert(subreddit.clone(), HashMap::new());
+            }
+            let subreddit_links = map.get_mut(&subreddit).unwrap();
+            if !subreddit_links.contains_key(&url) {
+                subreddit_links.insert(url.clone(), 1);
+            } else {
+                let entry = subreddit_links.get_mut(&url).unwrap();
+                *entry += 1;
+            }
+        }
+    }
+    map
+}
+
 pub trait HasCreationDate {
     fn get_creation_date(&self) -> i32;
 }

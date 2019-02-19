@@ -47,8 +47,11 @@ impl From<RedditPost> for SimpleRedditPost {
 fn main() {
     let filepaths = vec!["datasets/RS_2011-02".to_string()];
     let item_iterator = JSONItemIterator::<RedditPost,_>::new(filepaths.clone().into_iter());
-    let (exec_ms, map) = measure_time(|| get_links::<SimpleRedditPost, _>(item_iterator));
-    println!("{:?}", exec_ms);
-    let (exec_ms, map) = measure_time(|| get_reposts_accross_subreddits(map));
+    let (exec_ms, mut map) = measure_time(|| get_links_inside_subreddits(item_iterator));
+    let map: HashMap<_,_> = map.into_iter().map(|(_subreddit, urls)| {
+        (_subreddit, urls.into_iter().filter(|(_url, n)| *n > 1).collect::<HashMap<_,_>>())
+    })
+        .filter(|(_subreddit, urls)| urls.len() != 0).collect();
+    println!("{:#?}", map);
     println!("{:?}", exec_ms);
 }
