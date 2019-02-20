@@ -72,6 +72,17 @@ where
     current_reader: Option<Lines<BufReader<File>>>,
 }
 
+impl<FPI> Clone for RedditPostItemIterator<FPI>
+where FPI: Iterator<Item = String> + Clone {
+    fn clone(&self) -> Self {
+        assert!(self.current_reader.is_none());
+        RedditPostItemIterator {
+            filepath_iterator: self.filepath_iterator.clone(),
+            current_reader: None,
+        }
+    }
+}
+
 impl<FPI> RedditPostItemIterator<FPI>
 where
     FPI: Iterator<Item = String>,
