@@ -15,6 +15,7 @@ pub struct SubredditStats {
 
 /// Get the all the present subreddits.
 /// Get only the n_subreddits subreddit with the most posts if given
+#[allow(dead_code)]
 pub fn compute_subreddits_stats<IT>(iterator: IT) -> HashMap<String, SubredditStats>
 where
     IT: Iterator<Item = RedditPost>,
@@ -36,6 +37,7 @@ where
 }
 
 /// Save the subreddits stats in a file
+#[allow(dead_code)]
 pub fn save_subreddits_stats(stats: &HashMap<String, SubredditStats>, filepath: &str) {
     let stats = serde_json::to_string(&stats).unwrap();
     let mut file = File::create(filepath).unwrap();
@@ -43,6 +45,7 @@ pub fn save_subreddits_stats(stats: &HashMap<String, SubredditStats>, filepath: 
 }
 
 /// Load the subreddits stats from a file
+#[allow(dead_code)]
 pub fn load_subreddits_stats(filepath: &str) -> HashMap<String, SubredditStats> {
     let file = File::open(filepath).unwrap();
     serde_json::from_reader(file).unwrap()
