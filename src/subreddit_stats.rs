@@ -16,6 +16,30 @@ pub struct SubredditStats {
 /// Get the all the present subreddits.
 /// Get only the n_subreddits subreddit with the most posts if given
 #[allow(dead_code)]
+pub fn compute_subreddits_stats_par<IT>(iterators: Vec<IT>) -> HashMap<String, SubredditStats>
+where
+    IT: Iterator<Item = RedditPost> + Send + 'static,
+{
+    let threads: Vec<_> = iterators.into_iter().map(|it| std::thread::spawn(move || compute_subreddits_stats(it))).collect();
+    let mut stats = HashMap::new();
+    for thread in threads {
+        let stats_ = thread.join().unwrap();
+        for (subreddit, stat) in stats_ {
+            if !stats.contains_key(&subreddit) {
+                stats.insert(subreddit, stat);
+            } else {
+                let stat_subreddit = stats.get_mut(&subreddit).unwrap();
+                stat_subreddit.n_posts += stat.n_posts;
+                stat_subreddit.n_comments += stat.n_comments;
+            }
+        }
+    }
+    stats
+}
+
+/// Get the all the present subreddits.
+/// Get only the n_subreddits subreddit with the most posts if given
+#[allow(dead_code)]
 pub fn compute_subreddits_stats<IT>(iterator: IT) -> HashMap<String, SubredditStats>
 where
     IT: Iterator<Item = RedditPost>,
