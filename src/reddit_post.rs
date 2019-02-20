@@ -10,22 +10,16 @@ use std::hash::{Hash, Hasher};
 pub struct RedditPost {
     pub href_url: Option<String>,
     pub num_comments: i32,
-    pub promoted_url: Option<String>,
     pub score: i32,
     pub gilded: i32,
     pub subreddit: String,
     pub id: String,
-    pub original_link: Option<String>,
     pub title: String,
-    pub is_self: bool,
-    pub selftext: String,
-    pub domain: String,
     pub url: String,
     pub over_18: bool,
     pub author_cakeday: Option<bool>,
     pub permalink: String,
     pub author: String,
-    pub subreddit_id: String,
     pub created_utc: i32,
 }
 
