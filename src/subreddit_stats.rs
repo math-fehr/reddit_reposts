@@ -11,6 +11,7 @@ use std::io::prelude::*;
 pub struct SubredditStats {
     pub n_posts: i32,
     pub n_comments: i32,
+    pub sum_score: i64,
 }
 
 /// Get the all the present subreddits.
@@ -31,6 +32,7 @@ where
                 let stat_subreddit = stats.get_mut(&subreddit).unwrap();
                 stat_subreddit.n_posts += stat.n_posts;
                 stat_subreddit.n_comments += stat.n_comments;
+                stat_subreddit.sum_score += stat.sum_score;
             }
         }
     }
@@ -46,14 +48,15 @@ where
 {
     let mut subreddits = HashMap::<String, SubredditStats>::new();
     for post in iterator {
-        let n_comments = post.num_comments;
         if let Some(stats) = subreddits.get_mut(&post.subreddit) {
             stats.n_posts += 1;
-            stats.n_comments += n_comments;
+            stats.n_comments += post.num_comments;
+            stats.sum_score += post.score as i64;
         } else {
             subreddits.insert(post.subreddit, SubredditStats {
                 n_posts: 1,
-                n_comments,
+                n_comments: post.num_comments,
+                sum_score: post.score as i64,
             });
         }
     }
@@ -76,22 +79,11 @@ pub fn load_subreddits_stats(filepath: &str) -> HashMap<String, SubredditStats> 
 }
 
 /// Get the most popular subreddits according to the post statistics
+#[allow(dead_code)]
 pub fn get_most_popular_subreddits(n_subreddits: usize, stats: HashMap<String, SubredditStats>) -> HashMap<String, SubredditStats> {
     let mut stats_vec: Vec<_> = stats.into_iter().collect();
     stats_vec.sort_by(|(_,stat1), (_,stat2)| {
-        if stat1.n_posts == 0 {
-            if stat2.n_posts == 0 {
-                std::cmp::Ordering::Equal
-            } else {
-                std::cmp::Ordering::Greater
-            }
-        } else if stat2.n_posts == 0 {
-            std::cmp::Ordering::Less
-        } else {
-            let value1 = stat1.n_comments as f32 / stat1.n_posts as f32;
-            let value2 = stat2.n_comments as f32 / stat2.n_posts as f32;
-            value2.partial_cmp(&value1).unwrap()
-        }
+        stat2.sum_score.cmp(&stat1.sum_score)
     });
     stats_vec.into_iter().take(n_subreddits).collect()
 }

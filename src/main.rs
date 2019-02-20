@@ -51,14 +51,13 @@ impl From<RedditPost> for SimpleRedditPost {
 }
 
 fn get_it() -> impl Iterator<Item=RedditPost> + Clone {
-    let filepaths = vec!["datasets/RS_2017-01_simp".to_string(), "datasets/RS_2017-02_simp".to_string(), "datasets/RS_2017-03_simp".to_string(), "datasets/RS_2017-04_simp".to_string()];
+    let filepaths = vec!["datasets/RS_2017-01_simp".to_string()];
     JSONItemIterator::new(filepaths.clone().into_iter())
 }
 
 fn main() {
-    let (time, _) = measure_time(|| simplify_post_dataset("datasets/RS_2017-01", "datasets/RS_2017-01_simp", true));
-    let (time, _) = measure_time(|| simplify_post_dataset("datasets/RS_2017-01_simp", "datasets/RS_2017-01_simp_url", false));
-    println!("{:?}", time);
+    let stats = load_subreddits_stats("datasets/subreddit_stats_2017-01");
+    let stats = get_most_popular_subreddits(100, stats);
     //simplify_post_dataset("datasets/RS_2017-02", "datasets/RS_2017-02_simp");
     //let (time, subreddits) = measure_time(|| compute_subreddits_stats(get_it()));
     //println!("Got subreddits: {:?}", time);
