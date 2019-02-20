@@ -46,18 +46,13 @@ struct RedditPostJSON<'a> {
     #[serde(borrow)]
     pub promoted_url: Option<Cow<'a, str>>,
     pub score: i32,
-    pub hidden: bool,
+    pub hidden: Option<bool>,
     pub gilded: i32,
     #[serde(borrow)]
     pub subreddit: Option<Cow<'a, str>>,
     pub id: &'a str,
     #[serde(borrow)]
     pub title: Cow<'a, str>,
-    pub is_self: bool,
-    #[serde(borrow)]
-    pub selftext: Cow<'a, str>,
-    #[serde(borrow)]
-    pub domain: Cow<'a, str>,
     #[serde(borrow)]
     pub url: Cow<'a, str>,
     pub over_18: bool,
@@ -81,7 +76,7 @@ impl<'a> RedditPostJSON<'a> {
     /// The difference between the two is that we don't want to keep some
     /// Reddit Posts (like the promoted one)
     pub fn into_reddit_post(self) -> Option<RedditPost> {
-        if self.subreddit.is_none() || self.promoted_url.is_some() {
+        if self.subreddit.is_none() || self.promoted_url.is_some() || (self.hidden.is_some() && self.hidden.unwrap())  {
             None
         } else {
             Some(RedditPost {
