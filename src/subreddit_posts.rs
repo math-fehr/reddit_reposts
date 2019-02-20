@@ -36,7 +36,7 @@ pub fn save_subreddit_posts(posts: HashMap<String, HashSet<RedditPost>>, filepat
 
 /// Load the subreddits posts from a file
 #[allow(dead_code)]
-pub fn load_subreddits_stats(filepath: &str) -> HashMap<String, HashSet<RedditPost>> {
+pub fn load_subreddits_posts(filepath: &str) -> HashMap<String, HashSet<RedditPost>> {
     let file = File::open(filepath).unwrap();
     serde_json::from_reader(file).unwrap()
 }
