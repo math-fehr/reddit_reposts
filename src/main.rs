@@ -56,13 +56,9 @@ fn get_it() -> impl Iterator<Item=RedditPost> + Clone {
 }
 
 fn main() {
-    let filepaths = vec!["datasets/RS_2017-01_simp".to_string()];
-    let iter = JSONItemIterator::new(filepaths.clone().into_iter());
-    let (time, stats) = measure_time(|| compute_subreddits_stats(iter));
+    let (time, _) = measure_time(|| simplify_post_dataset("datasets/RS_2017-01", "datasets/RS_2017-01_simp", true));
+    let (time, _) = measure_time(|| simplify_post_dataset("datasets/RS_2017-01_simp", "datasets/RS_2017-01_simp_url", false));
     println!("{:?}", time);
-    let (time, stats) = measure_time(|| compute_subreddits_stats(get_it()));
-    println!("{:?}", time);
-    save_subreddits_stats(&stats, "datasets/subreddit_stats_2017");
     //simplify_post_dataset("datasets/RS_2017-02", "datasets/RS_2017-02_simp");
     //let (time, subreddits) = measure_time(|| compute_subreddits_stats(get_it()));
     //println!("Got subreddits: {:?}", time);
