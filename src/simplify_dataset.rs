@@ -26,6 +26,9 @@ pub fn simplify_post_dataset(filepath: &str, new_filepath: &str) {
         }
         let post = post.unwrap();
         if let Some(post) = post.into_reddit_post() {
+            if post.get_linked_url().is_none() {
+                continue;
+            }
             let post_str = serde_json::to_vec(&post).unwrap();
             writer.write(&post_str).unwrap();
             writer.write("\n".as_bytes()).unwrap();

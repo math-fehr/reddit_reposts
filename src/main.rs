@@ -56,6 +56,7 @@ fn get_it() -> impl Iterator<Item=RedditPost> + Clone {
 }
 
 fn main() {
+    //simplify_post_dataset("datasets/RS_2017-01", "datasets/RS_2017-01_simp");
     let (time, subreddits) = measure_time(|| compute_subreddits_stats(get_it()));
     println!("Got subreddits: {:?}", time);
     /*let links = get_links::<SimpleRedditPost,_>(get_it().take(6_000_000));
