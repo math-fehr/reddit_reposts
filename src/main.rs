@@ -6,6 +6,7 @@ mod read_files;
 mod data_analysis;
 mod utils;
 mod subreddit_stats;
+mod subreddit_posts;
 
 use crate::reddit_post::RedditPost;
 use regex::Regex;
@@ -13,6 +14,7 @@ use crate::read_files::*;
 use crate::data_analysis::*;
 use crate::utils::*;
 use subreddit_stats::*;
+use subreddit_posts::*;
 
 #[allow(dead_code)]
 fn get_url_regex() -> Regex {
@@ -46,16 +48,12 @@ impl From<RedditPost> for SimpleRedditPost {
     }
 }
 
-fn get_it() -> impl Iterator<Item=RedditPost> {
+fn get_it() -> impl Iterator<Item=RedditPost> + Clone {
     let filepaths = vec!["datasets/RS_2017-01".to_string()];
     RedditPostItemIterator::new(filepaths.clone().into_iter())
 }
 
 fn main() {
-    let (time, subreddits) = measure_time(|| compute_subreddits_stats(get_it()));
-    println!("{:?}", time);
-    save_subreddits_stats(&subreddits, "datasets/subreddit_stats_01_2017");
-    println!("Got subreddits");
     /*let links = get_links::<SimpleRedditPost,_>(get_it().take(6_000_000));
     println!("Got links");
     let accross_subreddits = get_reposts_accross_subreddits(links);

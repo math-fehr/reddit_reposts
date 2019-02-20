@@ -1,12 +1,12 @@
 //! Contain structs representing a reddit post.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
 
 
 /// A struct representing the interesting fields of a reddit post.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct RedditPost {
     pub href_url: Option<String>,
     pub num_comments: i32,
