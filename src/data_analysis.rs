@@ -5,32 +5,6 @@ use crate::reddit_post::*;
 pub use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
-/// Get the all the present subreddits.
-/// Get only the n_subreddits subreddit with the most posts if given
-pub fn get_subreddits<IT>(iterator: IT, n_subreddits: Option<usize>) -> HashMap<String, i32>
-where
-    IT: Iterator<Item = RedditPost>,
-{
-    let mut subreddits = HashMap::new();
-    for post in iterator {
-        if let Some(n_post) = subreddits.get_mut(&post.subreddit) {
-            *n_post += 1;
-        } else {
-            subreddits.insert(post.subreddit, 1);
-        }
-    }
-    if let Some(n_subreddits) = n_subreddits {
-        let mut subreddits_vec: Vec<_> = subreddits.into_iter().collect();
-        subreddits_vec.sort_by(|(_, n1), (_, n2)| n2.cmp(n1));
-        subreddits_vec
-            .into_iter()
-            .take(n_subreddits)
-            .collect()
-    } else {
-        subreddits
-    }
-}
-
 /// Get posts associated with the links
 pub fn get_links<T, IT>(iterator: IT) -> HashMap<String, HashSet<T>>
 where

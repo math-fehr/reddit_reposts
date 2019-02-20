@@ -5,12 +5,14 @@ mod possible_types;
 mod read_files;
 mod data_analysis;
 mod utils;
+mod subreddit_stats;
 
 use crate::reddit_post::RedditPost;
 use regex::Regex;
 use crate::read_files::*;
 use crate::data_analysis::*;
 use crate::utils::*;
+use subreddit_stats::*;
 
 #[allow(dead_code)]
 fn get_url_regex() -> Regex {
@@ -50,11 +52,15 @@ fn get_it() -> impl Iterator<Item=RedditPost> {
 }
 
 fn main() {
-    let links = get_links::<SimpleRedditPost,_>(get_it().take(6_000_000));
+    let (time, subreddits) = measure_time(|| compute_subreddits_stats(get_it()));
+    println!("{:?}", time);
+    save_subreddits_stats(&subreddits, "datasets/subreddit_stats_01_2017");
+    println!("Got subreddits");
+    /*let links = get_links::<SimpleRedditPost,_>(get_it().take(6_000_000));
     println!("Got links");
     let accross_subreddits = get_reposts_accross_subreddits(links);
     println!("Got reposts");
-    let subreddits = get_subreddits(get_it().take(6_000_000), Some(100));
+    let subreddits = compute_subreddits_stats(get_it().take(6_000_000));
     println!("Got subreddits");
 
     let information_out = accross_subreddits.clone().into_iter().map(|(s,hm)| (s, hm.into_iter().fold(0, |sum, (_,i)| sum + i))).collect::<HashMap<_,_>>();
@@ -69,10 +75,10 @@ fn main() {
         }
     }
     let mut vec = vec![];
-    for (subreddit, n_posts) in subreddits {
+    for (subreddit, stats) in subreddits {
         let n_in = *information_in.get(&subreddit).unwrap_or(&0) as f32;
         let n_out = *information_out.get(&subreddit).unwrap_or(&0) as f32;
-        let n_posts = n_posts as f32;
+        let n_posts = stats.n_posts as f32;
         vec.push((subreddit, n_in / n_posts, n_out / n_posts, n_posts));
     }
     vec.sort_by(|(_, in1, _, _), (_, in2, _, _)| {
@@ -82,6 +88,5 @@ fn main() {
     vec.sort_by(|(_, _, out1, _), (_, _, out2, _)| {
         out1.partial_cmp(&out2).unwrap()
     });
-    println!("{:#?}", vec);
-
+    println!("{:#?}", vec);*/
 }
