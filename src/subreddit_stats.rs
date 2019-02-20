@@ -5,7 +5,6 @@ use crate::reddit_post::RedditPost;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::{BufReader};
 
 /// Structure containing the interesting stats about a subreddit
 #[derive(Deserialize, Serialize, Copy, Clone, Debug)]
