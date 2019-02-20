@@ -74,3 +74,24 @@ pub fn load_subreddits_stats(filepath: &str) -> HashMap<String, SubredditStats> 
     let file = File::open(filepath).unwrap();
     serde_json::from_reader(file).unwrap()
 }
+
+/// Get the most popular subreddits according to the post statistics
+pub fn get_most_popular_subreddits(n_subreddits: usize, stats: HashMap<String, SubredditStats>) -> HashMap<String, SubredditStats> {
+    let mut stats_vec: Vec<_> = stats.into_iter().collect();
+    stats_vec.sort_by(|(_,stat1), (_,stat2)| {
+        if stat1.n_posts == 0 {
+            if stat2.n_posts == 0 {
+                std::cmp::Ordering::Equal
+            } else {
+                std::cmp::Ordering::Greater
+            }
+        } else if stat2.n_posts == 0 {
+            std::cmp::Ordering::Less
+        } else {
+            let value1 = stat1.n_comments as f32 / stat1.n_posts as f32;
+            let value2 = stat2.n_comments as f32 / stat2.n_posts as f32;
+            value2.partial_cmp(&value1).unwrap()
+        }
+    });
+    stats_vec.into_iter().take(n_subreddits).collect()
+}
