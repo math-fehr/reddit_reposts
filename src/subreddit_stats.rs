@@ -12,6 +12,7 @@ pub struct SubredditStats {
     pub n_posts: i32,
     pub n_comments: i32,
     pub sum_score: i64,
+    pub n_posts_over_18: i32,
 }
 
 /// Get the all the present subreddits.
@@ -33,6 +34,7 @@ where
                 stat_subreddit.n_posts += stat.n_posts;
                 stat_subreddit.n_comments += stat.n_comments;
                 stat_subreddit.sum_score += stat.sum_score;
+                stat_subreddit.n_posts_over_18 += stat.n_posts_over_18;
             }
         }
     }
@@ -48,15 +50,18 @@ where
 {
     let mut subreddits = HashMap::<String, SubredditStats>::new();
     for post in iterator {
+        let n_posts_over_18 = if post.over_18 { 1 } else { 0 };
         if let Some(stats) = subreddits.get_mut(&post.subreddit) {
             stats.n_posts += 1;
             stats.n_comments += post.num_comments;
             stats.sum_score += post.score as i64;
+            stats.n_posts_over_18 += n_posts_over_18;
         } else {
             subreddits.insert(post.subreddit, SubredditStats {
                 n_posts: 1,
                 n_comments: post.num_comments,
                 sum_score: post.score as i64,
+                n_posts_over_18,
             });
         }
     }

@@ -1,29 +1,33 @@
-mod reddit_comment;
-mod reddit_post;
+mod data_analysis;
 mod edit_state;
 mod possible_types;
 mod read_files;
-mod data_analysis;
-mod utils;
-mod subreddit_stats;
-mod subreddit_posts;
+mod reddit_comment;
+mod reddit_post;
 mod simplify_dataset;
+mod subreddit_posts;
+mod subreddit_stats;
+mod utils;
 
-use crate::reddit_post::RedditPost;
-use regex::Regex;
-use crate::read_files::*;
 use crate::data_analysis::*;
+use crate::read_files::*;
+use crate::reddit_post::RedditPost;
 use crate::utils::*;
-use subreddit_stats::*;
-use subreddit_posts::*;
+use regex::Regex;
 use simplify_dataset::*;
+use subreddit_posts::*;
+use subreddit_stats::*;
+use std::io::prelude::*;
 
 #[allow(dead_code)]
 fn get_url_regex() -> Regex {
-    Regex::new(r"https?://(www.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b[-a-zA-Z0-9@:%_+.~#?&/=;]*").unwrap()
+    Regex::new(
+        r"https?://(www.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b[-a-zA-Z0-9@:%_+.~#?&/=;]*",
+    )
+    .unwrap()
 }
 
-#[derive(Hash, Debug, PartialEq, Eq)]
+#[derive(Hash, Debug, PartialEq, Eq, Clone)]
 struct SimpleRedditPost {
     created_utc: i32,
     subreddit: String,
@@ -50,26 +54,45 @@ impl From<RedditPost> for SimpleRedditPost {
     }
 }
 
-fn get_it() -> impl Iterator<Item=RedditPost> + Clone {
+fn get_it() -> impl Iterator<Item = RedditPost> + Clone {
     let filepaths = vec!["datasets/RS_2017-01_simp".to_string()];
     JSONItemIterator::new(filepaths.clone().into_iter())
 }
 
-fn main() {
+fn write_kernel() {
     let stats = load_subreddits_stats("datasets/subreddit_stats_2017-01");
     let stats = get_most_popular_subreddits(100, stats);
-    //simplify_post_dataset("datasets/RS_2017-02", "datasets/RS_2017-02_simp");
-    //let (time, subreddits) = measure_time(|| compute_subreddits_stats(get_it()));
-    //println!("Got subreddits: {:?}", time);
-    /*let links = get_links::<SimpleRedditPost,_>(get_it().take(6_000_000));
-    println!("Got links");
-    let accross_subreddits = get_reposts_accross_subreddits(links);
-    println!("Got reposts");
-    let subreddits = compute_subreddits_stats(get_it().take(6_000_000));
+    let best_subreddits: HashSet<_> = stats.clone().into_iter().map(|(s, _)| s).collect();
     println!("Got subreddits");
+    let (time, links) =
+        measure_time(|| get_links::<SimpleRedditPost, _>(get_it(), Some(&best_subreddits)));
+    println!("Got links: {:?}", time);
+    let links_between_subreddits = get_shared_links_between_subreddits(links);
+    let ppmi = compute_ppmi(links_between_subreddits);
+    write_ppmi_for_python_plot("plot/kernel", &stats, &ppmi);
+}
 
-    let information_out = accross_subreddits.clone().into_iter().map(|(s,hm)| (s, hm.into_iter().fold(0, |sum, (_,i)| sum + i))).collect::<HashMap<_,_>>();
-    let mut information_in = HashMap::<String,_>::new();
+fn main() {
+    write_kernel();
+}
+
+fn show_reposts_accross_subreddits() {
+    let stats = load_subreddits_stats("datasets/subreddit_stats_2017-01");
+    let stats = get_most_popular_subreddits(100, stats);
+    let best_subreddits: HashSet<_> = stats.clone().into_iter().map(|(s, _)| s).collect();
+    println!("Got subreddits");
+    let (time, links) =
+        measure_time(|| get_links::<SimpleRedditPost, _>(get_it(), Some(&best_subreddits)));
+    println!("Got links: {:?}", time);
+    let (time, accross_subreddits) = measure_time(|| get_reposts_accross_subreddits(links));
+    println!("Got reposts: {:?}", time);
+
+    let information_out = accross_subreddits
+        .clone()
+        .into_iter()
+        .map(|(s, hm)| (s, hm.into_iter().fold(0, |sum, (_, i)| sum + 1)))
+        .collect::<HashMap<_, _>>();
+    let mut information_in = HashMap::<String, _>::new();
     for (s_in, hm) in accross_subreddits {
         for (s_out, i) in hm {
             if !information_in.contains_key(&s_out) {
@@ -80,18 +103,14 @@ fn main() {
         }
     }
     let mut vec = vec![];
-    for (subreddit, stats) in subreddits {
+    for (subreddit, stats) in stats {
         let n_in = *information_in.get(&subreddit).unwrap_or(&0) as f32;
         let n_out = *information_out.get(&subreddit).unwrap_or(&0) as f32;
         let n_posts = stats.n_posts as f32;
         vec.push((subreddit, n_in / n_posts, n_out / n_posts, n_posts));
     }
-    vec.sort_by(|(_, in1, _, _), (_, in2, _, _)| {
-        in1.partial_cmp(&in2).unwrap()
-    });
+    vec.sort_by(|(_, in1, _, _), (_, in2, _, _)| in1.partial_cmp(&in2).unwrap());
     println!("{:#?}", vec);
-    vec.sort_by(|(_, _, out1, _), (_, _, out2, _)| {
-        out1.partial_cmp(&out2).unwrap()
-    });
-    println!("{:#?}", vec);*/
+    vec.sort_by(|(_, _, out1, _), (_, _, out2, _)| out1.partial_cmp(&out2).unwrap());
+    println!("{:#?}", vec);
 }
