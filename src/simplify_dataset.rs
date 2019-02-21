@@ -76,7 +76,10 @@ impl<'a> RedditPostJSON<'a> {
     /// The difference between the two is that we don't want to keep some
     /// Reddit Posts (like the promoted one)
     pub fn into_reddit_post(self) -> Option<RedditPost> {
-        if self.subreddit.is_none() || self.promoted_url.is_some() || (self.hidden.is_some() && self.hidden.unwrap())  {
+        if self.subreddit.is_none()
+            || self.promoted_url.is_some()
+            || (self.hidden.is_some() && self.hidden.unwrap())
+        {
             None
         } else {
             Some(RedditPost {

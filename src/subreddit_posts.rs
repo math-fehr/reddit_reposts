@@ -1,16 +1,23 @@
 //! Functions to get and save posts from chosen subreddits
 
+pub use crate::reddit_post::RedditPost;
+pub use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::prelude::*;
-pub use std::collections::{HashSet, HashMap};
-pub use crate::reddit_post::RedditPost;
 
 /// Get all posts from chosen subreddits
 #[allow(dead_code)]
-pub fn get_subreddit_posts<IT>(iterator: IT, subreddit_names: HashSet<String>) -> HashMap<String, HashMap<String, HashSet<RedditPost>>>
-where IT: Iterator<Item = RedditPost>,
+pub fn get_subreddit_posts<IT>(
+    iterator: IT,
+    subreddit_names: HashSet<String>,
+) -> HashMap<String, HashMap<String, HashSet<RedditPost>>>
+where
+    IT: Iterator<Item = RedditPost>,
 {
-    let mut map: HashMap<_,_> = subreddit_names.into_iter().map(|name| (name, HashMap::new())).collect();
+    let mut map: HashMap<_, _> = subreddit_names
+        .into_iter()
+        .map(|name| (name, HashMap::new()))
+        .collect();
     for post in iterator {
         let url = post.get_linked_url();
         if let Some(url) = url {

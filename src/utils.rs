@@ -9,4 +9,3 @@ pub fn measure_time<T, F: FnOnce() -> T>(f: F) -> (Duration, T) {
     let result = f();
     (now.elapsed(), result)
 }
-

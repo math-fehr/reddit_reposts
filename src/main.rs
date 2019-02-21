@@ -1,8 +1,6 @@
 mod data_analysis;
-mod edit_state;
 mod possible_types;
 mod read_files;
-mod reddit_comment;
 mod reddit_post;
 mod simplify_dataset;
 mod subreddit_posts;
@@ -11,13 +9,10 @@ mod utils;
 
 use crate::data_analysis::*;
 use crate::read_files::*;
-use crate::reddit_post::RedditPost;
+use crate::reddit_post::*;
 use crate::utils::*;
 use regex::Regex;
-use simplify_dataset::*;
-use subreddit_posts::*;
 use subreddit_stats::*;
-use std::io::prelude::*;
 
 #[allow(dead_code)]
 fn get_url_regex() -> Regex {
@@ -76,6 +71,7 @@ fn main() {
     write_kernel();
 }
 
+#[allow(dead_code)]
 fn show_reposts_accross_subreddits() {
     let stats = load_subreddits_stats("datasets/subreddit_stats_2017-01");
     let stats = get_most_popular_subreddits(100, stats);
@@ -90,10 +86,10 @@ fn show_reposts_accross_subreddits() {
     let information_out = accross_subreddits
         .clone()
         .into_iter()
-        .map(|(s, hm)| (s, hm.into_iter().fold(0, |sum, (_, i)| sum + 1)))
+        .map(|(s, hm)| (s, hm.into_iter().fold(0, |sum, (_, _)| sum + 1)))
         .collect::<HashMap<_, _>>();
     let mut information_in = HashMap::<String, _>::new();
-    for (s_in, hm) in accross_subreddits {
+    for (_, hm) in accross_subreddits {
         for (s_out, i) in hm {
             if !information_in.contains_key(&s_out) {
                 information_in.insert(s_out.to_string(), i);

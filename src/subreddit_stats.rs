@@ -1,8 +1,7 @@
-/// Functions used to compute subreddits statistics
-
-use std::collections::HashMap;
 use crate::reddit_post::RedditPost;
 use serde::{Deserialize, Serialize};
+/// Functions used to compute subreddits statistics
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -22,7 +21,10 @@ pub fn compute_subreddits_stats_par<IT>(iterators: Vec<IT>) -> HashMap<String, S
 where
     IT: Iterator<Item = RedditPost> + Send + 'static,
 {
-    let threads: Vec<_> = iterators.into_iter().map(|it| std::thread::spawn(move || compute_subreddits_stats(it))).collect();
+    let threads: Vec<_> = iterators
+        .into_iter()
+        .map(|it| std::thread::spawn(move || compute_subreddits_stats(it)))
+        .collect();
     let mut stats = HashMap::new();
     for thread in threads {
         let stats_ = thread.join().unwrap();
@@ -57,12 +59,15 @@ where
             stats.sum_score += post.score as i64;
             stats.n_posts_over_18 += n_posts_over_18;
         } else {
-            subreddits.insert(post.subreddit, SubredditStats {
-                n_posts: 1,
-                n_comments: post.num_comments,
-                sum_score: post.score as i64,
-                n_posts_over_18,
-            });
+            subreddits.insert(
+                post.subreddit,
+                SubredditStats {
+                    n_posts: 1,
+                    n_comments: post.num_comments,
+                    sum_score: post.score as i64,
+                    n_posts_over_18,
+                },
+            );
         }
     }
     subreddits
@@ -85,10 +90,11 @@ pub fn load_subreddits_stats(filepath: &str) -> HashMap<String, SubredditStats> 
 
 /// Get the most popular subreddits according to the post statistics
 #[allow(dead_code)]
-pub fn get_most_popular_subreddits(n_subreddits: usize, stats: HashMap<String, SubredditStats>) -> HashMap<String, SubredditStats> {
+pub fn get_most_popular_subreddits(
+    n_subreddits: usize,
+    stats: HashMap<String, SubredditStats>,
+) -> HashMap<String, SubredditStats> {
     let mut stats_vec: Vec<_> = stats.into_iter().collect();
-    stats_vec.sort_by(|(_,stat1), (_,stat2)| {
-        stat2.sum_score.cmp(&stat1.sum_score)
-    });
+    stats_vec.sort_by(|(_, stat1), (_, stat2)| stat2.sum_score.cmp(&stat1.sum_score));
     stats_vec.into_iter().take(n_subreddits).collect()
 }

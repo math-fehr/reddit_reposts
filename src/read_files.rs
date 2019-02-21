@@ -5,7 +5,6 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::{BufReader, Lines};
 use std::marker::PhantomData;
-use crate::reddit_post::RedditPost;
 
 /// An iterator iterating through multiple files,
 /// to deserialize JSON objects into a given struct
@@ -20,8 +19,10 @@ where
 }
 
 impl<S, FPI> Clone for JSONItemIterator<S, FPI>
-where FPI: Iterator<Item = String> + Clone,
-S: DeserializeOwned {
+where
+    FPI: Iterator<Item = String> + Clone,
+    S: DeserializeOwned,
+{
     fn clone(&self) -> Self {
         assert!(self.current_reader.is_none());
         JSONItemIterator {
@@ -72,6 +73,3 @@ where
         }
     }
 }
-
-
-

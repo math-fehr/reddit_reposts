@@ -3,8 +3,6 @@
 use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-
-
 /// A struct representing the interesting fields of a reddit post.
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct RedditPost {
