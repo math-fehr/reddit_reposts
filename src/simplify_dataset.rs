@@ -14,8 +14,7 @@ use std::io::{BufReader, BufWriter};
 pub fn simplify_post_dataset(filepath: &str, new_filepath: &str, keep_non_url_posts: bool) {
     let file = File::open(filepath).unwrap();
     let reader = BufReader::new(file);
-    let new_file = File::create(new_filepath).unwrap();
-    let mut writer = BufWriter::new(new_file);
+    let mut writer = csv::Writer::from_path(filepath).unwrap();
     for line in reader.lines() {
         let line = line.unwrap();
         let post = serde_json::from_str::<RedditPostJSON>(&line);
@@ -29,9 +28,7 @@ pub fn simplify_post_dataset(filepath: &str, new_filepath: &str, keep_non_url_po
             if !keep_non_url_posts && post.get_linked_url().is_none() {
                 continue;
             }
-            let post_str = serde_json::to_vec(&post).unwrap();
-            writer.write(&post_str).unwrap();
-            writer.write("\n".as_bytes()).unwrap();
+            writer.serialize(post).unwrap();
         }
     }
 }
