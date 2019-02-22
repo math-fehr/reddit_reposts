@@ -6,6 +6,7 @@ mod simplify_dataset;
 mod subreddit_posts;
 mod subreddit_stats;
 mod utils;
+mod subreddit_urls;
 
 use crate::data_analysis::*;
 use crate::read_files::*;
@@ -22,35 +23,8 @@ fn get_url_regex() -> Regex {
     .unwrap()
 }
 
-#[derive(Hash, Debug, PartialEq, Eq, Clone)]
-struct SimpleRedditPost {
-    created_utc: i32,
-    subreddit: String,
-}
-
-impl HasCreationDate for SimpleRedditPost {
-    fn get_creation_date(&self) -> i32 {
-        self.created_utc
-    }
-}
-
-impl HasSubreddit for SimpleRedditPost {
-    fn get_subreddit(&self) -> &str {
-        &self.subreddit
-    }
-}
-
-impl From<RedditPost> for SimpleRedditPost {
-    fn from(post: RedditPost) -> Self {
-        Self {
-            created_utc: post.created_utc,
-            subreddit: post.subreddit,
-        }
-    }
-}
-
 fn get_it() -> impl Iterator<Item = RedditPost> + Clone {
-    let filepaths = vec!["datasets/RS_2017-01_simp".to_string()];
+    let filepaths = vec!["datasets/RS_2017-01_simp_url".to_string()];
     JSONItemIterator::new(filepaths.clone().into_iter())
 }
 
@@ -60,48 +34,52 @@ fn write_kernel() {
     let best_subreddits: HashSet<_> = stats.clone().into_iter().map(|(s, _)| s).collect();
     println!("Got subreddits");
     let (time, links) =
-        measure_time(|| get_links::<SimpleRedditPost, _>(get_it(), Some(&best_subreddits)));
+        measure_time(|| get_links(get_it(), Some(&best_subreddits)));
     println!("Got links: {:?}", time);
+    println!("{}", links.urls.len());
     let links_between_subreddits = get_shared_links_between_subreddits(links);
     let ppmi = compute_ppmi(links_between_subreddits);
     write_ppmi_for_python_plot("plot/kernel", &stats, &ppmi);
 }
 
 fn main() {
-    write_kernel();
+    let stats = compute_subreddits_stats(JSONItemIterator::new(vec!["datasets/RS_2017-01_simp".to_string()].into_iter()));
+    save_subreddits_stats(&stats, "datasets/subreddit_stats_2017-01");
+    //write_kernel();
+    show_reposts_accross_subreddits();
 }
 
 #[allow(dead_code)]
 fn show_reposts_accross_subreddits() {
+    let n_subreddits = 100;
     let stats = load_subreddits_stats("datasets/subreddit_stats_2017-01");
-    let stats = get_most_popular_subreddits(100, stats);
+    let stats = get_most_popular_subreddits(n_subreddits, stats);
     let best_subreddits: HashSet<_> = stats.clone().into_iter().map(|(s, _)| s).collect();
     println!("Got subreddits");
     let (time, links) =
-        measure_time(|| get_links::<SimpleRedditPost, _>(get_it(), Some(&best_subreddits)));
+        measure_time(|| get_links(get_it(), None));
     println!("Got links: {:?}", time);
-    let (time, accross_subreddits) = measure_time(|| get_reposts_accross_subreddits(links));
+    let (time, mut accross_subreddits) = measure_time(|| get_reposts_accross_subreddits(links));
     println!("Got reposts: {:?}", time);
+    let best_subreddits_vec: Vec<_> = best_subreddits.into_iter().collect();
+    accross_subreddits.project(best_subreddits_vec);
 
-    let information_out = accross_subreddits
-        .clone()
-        .into_iter()
-        .map(|(s, hm)| (s, hm.into_iter().fold(0, |sum, (_, _)| sum + 1)))
-        .collect::<HashMap<_, _>>();
-    let mut information_in = HashMap::<String, _>::new();
-    for (_, hm) in accross_subreddits {
+    let mut information_out = vec![0; n_subreddits];
+    for (subreddit, hm) in accross_subreddits.n_reposts.iter() {
+        information_out[*subreddit] = hm.iter().fold(0, |sum, (_, i)| sum + i);
+    }
+    let mut information_in = vec![0; n_subreddits];
+    for (_, hm) in accross_subreddits.n_reposts {
         for (s_out, i) in hm {
-            if !information_in.contains_key(&s_out) {
-                information_in.insert(s_out.to_string(), i);
-            } else {
-                *information_in.get_mut(&s_out).unwrap() += 1;
-            }
+            information_in[s_out] += i;
         }
     }
     let mut vec = vec![];
-    for (subreddit, stats) in stats {
-        let n_in = *information_in.get(&subreddit).unwrap_or(&0) as f32;
-        let n_out = *information_out.get(&subreddit).unwrap_or(&0) as f32;
+    for i in 0..n_subreddits {
+        let subreddit = accross_subreddits.subreddits.get(i).unwrap();
+        let stats = stats.get(subreddit).unwrap();
+        let n_in = information_in[i] as f32;
+        let n_out = information_out[i] as f32;
         let n_posts = stats.n_posts as f32;
         vec.push((subreddit, n_in / n_posts, n_out / n_posts, n_posts));
     }
