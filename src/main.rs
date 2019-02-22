@@ -10,33 +10,26 @@ mod utils;
 use crate::data_analysis::*;
 use crate::read_files::*;
 use crate::reddit_post::*;
-use regex::Regex;
 use subreddit_stats::*;
 use simplify_dataset::*;
 use clap::{Arg, App, SubCommand};
 
-#[allow(dead_code)]
-fn get_url_regex() -> Regex {
-    Regex::new(
-        r"https?://(www.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b[-a-zA-Z0-9@:%_+.~#?&/=;]*",
-    )
-    .unwrap()
-}
-
-fn write_kernel<I: Iterator<Item = RedditPost>>(post_iterator: I, stats_filepath: &str, output_filepath: &str, n_subreddits: usize) {
+/// Compute and write to a file the PPMI matrix
+fn write_ppmi_matrix<I: Iterator<Item = RedditPost>>(post_iterator: I, stats_filepath: &str, output_filepath: &str, n_subreddits: usize) {
     let stats = load_subreddits_stats(stats_filepath);
     let stats = get_most_popular_subreddits(n_subreddits, stats);
     let best_subreddits: HashSet<_> = stats.clone().into_iter().map(|(s, _)| s).collect();
     println!("Got subreddits");
-    let links = get_links(post_iterator, Some(&best_subreddits));
-    println!("Got links: {} links considered", links.urls.len());
-    let links_between_subreddits = get_shared_links_between_subreddits(links);
-    let ppmi = compute_ppmi(links_between_subreddits);
+    let urls = get_urls(post_iterator, Some(&best_subreddits));
+    println!("Got urls: {} urls considered", urls.urls.len());
+    let urls_between_subreddits = get_shared_urls_between_subreddits(urls);
+    let ppmi = compute_ppmi(urls_between_subreddits);
     println!("PPMI matrix computed");
     write_ppmi_for_python_plot(output_filepath, &stats, &ppmi);
     println!("PPMI matrix written");
 }
 
+/// Get the subreddits stats for some subreddits, by loading from a file the stats
 fn get_subreddit_stats(stats_filepath: &str, subreddits: Vec<&str>) {
     let stats = load_subreddits_stats(stats_filepath);
     for subreddit in subreddits {
@@ -48,12 +41,13 @@ fn get_subreddit_stats(stats_filepath: &str, subreddits: Vec<&str>) {
     }
 }
 
+/// Get the reposts that comes from and to a particular subreddit.
 fn get_reposts(subreddit: &str, inputs_filepath: Vec<&str>) {
     let it = CSVItemIterator::<RedditPost,_>::new(inputs_filepath.clone().into_iter().map(|s| s.to_string()));
     let mut subreddit_singleton = HashSet::new();
     subreddit_singleton.insert(subreddit.to_string());
     println!("Fetching urls...");
-    let mut urls = get_links(it, Some(&subreddit_singleton));
+    let mut urls = get_urls(it, Some(&subreddit_singleton));
     println!("Subreddit urls fetched!");
     let it = CSVItemIterator::<RedditPost,_>::new(inputs_filepath.clone().into_iter().map(|s| s.to_string()));
     println!("Fetching other surbeddits...");
@@ -93,7 +87,7 @@ fn main() {
                          .min_values(1)
                          .index(2)))
         .subcommand(SubCommand::with_name("ppmi")
-                    .about("Computes the ppmi matrix found by comparing the shared links between subreddits")
+                    .about("Computes the ppmi matrix found by comparing the shared urls between subreddits")
                     .arg(Arg::with_name("OUTPUT")
                          .help("The output file that should be read by tsne.py")
                          .required(true)
@@ -165,7 +159,7 @@ fn main() {
         let inputs_filepath: Vec<_> = matches.values_of("INPUTS").unwrap().collect();
         let n_subreddits: usize = matches.value_of("N_SUBREDDITS").unwrap().parse().unwrap();
         let it = CSVItemIterator::<RedditPost,_>::new(inputs_filepath.into_iter().map(|s| s.to_string()));
-        write_kernel(it, stats_filepath, output_filepath, n_subreddits);
+        write_ppmi_matrix(it, stats_filepath, output_filepath, n_subreddits);
         return;
     }
 

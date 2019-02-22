@@ -15,7 +15,7 @@ pub struct SubredditsFromUrls {
 }
 
 /// Get posts associated with urls
-pub fn get_links<IT>(iterator: IT, subreddits: Option<&HashSet<String>>) -> SubredditsFromUrls
+pub fn get_urls<IT>(iterator: IT, subreddits: Option<&HashSet<String>>) -> SubredditsFromUrls
 where
     IT: Iterator<Item = RedditPost>,
 {
@@ -217,9 +217,9 @@ pub struct UrlsBetweenSubreddits {
 }
 
 /// Get the number of shared between subreddits.
-/// This count the number of time a link was posted in two different subreddits.
-pub fn get_shared_links_between_subreddits(urls: SubredditsFromUrls) -> UrlsBetweenSubreddits {
-    let mut subreddits_links = HashMap::new();
+/// This count the number of time a url was posted in two different subreddits.
+pub fn get_shared_urls_between_subreddits(urls: SubredditsFromUrls) -> UrlsBetweenSubreddits {
+    let mut subreddits_urls = HashMap::new();
     for (_url, posts) in urls.urls.into_iter() {
         if posts.len() <= 1 {
             continue;
@@ -227,24 +227,24 @@ pub fn get_shared_links_between_subreddits(urls: SubredditsFromUrls) -> UrlsBetw
         let subreddits: HashSet<_> = posts.iter().map(|(s, _)| *s).collect();
 
         for subreddit1 in subreddits.iter() {
-            if !subreddits_links.contains_key(subreddit1) {
-                subreddits_links.insert(*subreddit1, HashMap::new());
+            if !subreddits_urls.contains_key(subreddit1) {
+                subreddits_urls.insert(*subreddit1, HashMap::new());
             }
-            let subreddit_links = subreddits_links.get_mut(subreddit1).unwrap();
+            let subreddit_urls = subreddits_urls.get_mut(subreddit1).unwrap();
             for subreddit2 in subreddits.iter() {
                 if subreddit1 == subreddit2 {
                     continue;
                 }
-                if !subreddit_links.contains_key(subreddit2) {
-                    subreddit_links.insert(*subreddit2, 0);
+                if !subreddit_urls.contains_key(subreddit2) {
+                    subreddit_urls.insert(*subreddit2, 0);
                 }
-                *subreddit_links.get_mut(subreddit2).unwrap() += 1;
+                *subreddit_urls.get_mut(subreddit2).unwrap() += 1;
             }
         }
     }
     UrlsBetweenSubreddits {
         subreddits: urls.subreddits,
-        n_shared_urls: subreddits_links,
+        n_shared_urls: subreddits_urls,
     }
 }
 
