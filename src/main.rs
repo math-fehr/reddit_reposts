@@ -37,6 +37,17 @@ fn write_kernel<I: Iterator<Item = RedditPost>>(post_iterator: I, stats_filepath
     println!("PPMI matrix written");
 }
 
+fn get_subreddit_stats(stats_filepath: &str, subreddits: Vec<&str>) {
+    let stats = load_subreddits_stats(stats_filepath);
+    for subreddit in subreddits {
+        if let Some(subreddit_stats) = stats.get(subreddit) {
+            println!("Subreddit {} :\n{:#?}", subreddit, subreddit_stats);
+        } else {
+            println!("Subreddit {} :\nNot found!", subreddit);
+        }
+    }
+}
+
 
 fn main() {
     let matches = App::new("Reddit Repost")
@@ -54,7 +65,7 @@ fn main() {
                          .help("Set the output file path")
                          .short("o")
                          .long("output")))
-        .subcommand(SubCommand::with_name("substats")
+        .subcommand(SubCommand::with_name("compute_subs_stats")
                     .about("Computes general statistics of subreddits")
                     .arg(Arg::with_name("OUTPUT")
                          .help("Set the output file path")
@@ -86,6 +97,17 @@ fn main() {
                          .multiple(true)
                          .min_values(1)
                          .index(4)))
+        .subcommand(SubCommand::with_name("get_subs_stats")
+                    .about("Get the stats of a subreddit from a previously pre-computed file")
+                    .arg(Arg::with_name("STATS_FILE")
+                         .help("The stats file computed by the compute_subs_stats command")
+                         .required(true)
+                         .index(1))
+                    .arg(Arg::with_name("SUBREDDITS")
+                         .help("The name of the subreddits")
+                         .required(true)
+                         .index(2)
+                         .multiple(true)))
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("simplify") {
@@ -101,7 +123,7 @@ fn main() {
         return;
     }
 
-    if let Some(matches) = matches.subcommand_matches("substats") {
+    if let Some(matches) = matches.subcommand_matches("compute_subs_stats") {
         let filepaths: Vec<_> = matches.values_of("INPUTS").unwrap().collect();
         let output_filepath = matches.value_of("OUTPUT").unwrap();
         let it = CSVItemIterator::<RedditPost,_>::new(filepaths.into_iter().map(|s| s.to_string()));
@@ -117,6 +139,13 @@ fn main() {
         let n_subreddits: usize = matches.value_of("N_SUBREDDITS").unwrap().parse().unwrap();
         let it = CSVItemIterator::<RedditPost,_>::new(inputs_filepath.into_iter().map(|s| s.to_string()));
         write_kernel(it, stats_filepath, output_filepath, n_subreddits);
+        return;
+    }
+
+    if let Some(matches) = matches.subcommand_matches("get_subs_stats") {
+        let stats_filepath = matches.value_of("STATS_FILE").unwrap();
+        let subreddits: Vec<_> = matches.values_of("SUBREDDITS").unwrap().collect();
+        get_subreddit_stats(stats_filepath, subreddits);
         return;
     }
 }

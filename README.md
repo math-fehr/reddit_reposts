@@ -22,9 +22,13 @@ The first important command is `reddit_reposts simplify [FLAGS] <INPUT> [KEEP_NO
 
 `<INPUT>` is the input file path, and `[KEEP_NON_URL_POSTS]` is a boolean indicating if the posts without url should be kept or not.
 
-### `substats` subcommand
+### `compute_subs_stats` subcommand
 
-The command to precompute some subreddit statistics is `reddit_reposts substats <OUTPUT> <INPUTS>...`. It takes an output file, and multiple CSV input files that were generated using the simplify command, and generate subreddit statistics.
+The command to precompute some subreddit statistics is `reddit_reposts compute_subs_stats <OUTPUT> <INPUTS>...`. It takes an output file, and multiple CSV input files that were generated using the simplify command, and generate subreddit statistics.
+
+### `get_subs_stats` subcommand
+
+The command `reddit_reposts get_subs_stats <STATS_FILE> <SUBREDDITS>...` display some statistics of subreddits, like the number of posts, the number of comments, the sum of post scores, and the number of NSFW posts.
 
 ### `ppmi` subcommand
 
