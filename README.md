@@ -22,13 +22,17 @@ The first important command is `reddit_reposts simplify [FLAGS] <INPUT> [KEEP_NO
 
 `<INPUT>` is the input file path, and `[KEEP_NON_URL_POSTS]` is a boolean indicating if the posts without url should be kept or not.
 
-### `compute_subs_stats` subcommand
+### `compute_stats` subcommand
 
-The command to precompute some subreddit statistics is `reddit_reposts compute_subs_stats <OUTPUT> <INPUTS>...`. It takes an output file, and multiple CSV input files that were generated using the simplify command, and generate subreddit statistics.
+The command to precompute some subreddit statistics is `reddit_reposts compute_stats <OUTPUT> <INPUTS>...`. It takes an output file, and multiple CSV input files that were generated using the simplify command, and generate subreddit statistics.
 
-### `get_subs_stats` subcommand
+### `get_stats` subcommand
 
-The command `reddit_reposts get_subs_stats <STATS_FILE> <SUBREDDITS>...` display some statistics of subreddits, like the number of posts, the number of comments, the sum of post scores, and the number of NSFW posts.
+The command `reddit_reposts get_stats <STATS_FILE> <SUBREDDITS>...` display some statistics of subreddits, like the number of posts, the number of comments, the sum of post scores, and the number of NSFW posts.
+
+### `get_reposts` subcommand
+
+The command `reddit_reposts get_reposts <SUBREDDIT> <INPUTS>...` display the reposts statistics of a subreddits, like the number of reposts from other subreddits, the number of reposts by other subreddits, or the number of reposts on the subreddit itself. It also display the subreddits that often reposts, or that this subreddit reposts from. 
 
 ### `ppmi` subcommand
 

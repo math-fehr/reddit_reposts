@@ -48,6 +48,21 @@ fn get_subreddit_stats(stats_filepath: &str, subreddits: Vec<&str>) {
     }
 }
 
+fn get_reposts(subreddit: &str, inputs_filepath: Vec<&str>) {
+    let it = CSVItemIterator::<RedditPost,_>::new(inputs_filepath.clone().into_iter().map(|s| s.to_string()));
+    let mut subreddit_singleton = HashSet::new();
+    subreddit_singleton.insert(subreddit.to_string());
+    println!("Fetching urls...");
+    let mut urls = get_links(it, Some(&subreddit_singleton));
+    println!("Subreddit urls fetched!");
+    let it = CSVItemIterator::<RedditPost,_>::new(inputs_filepath.clone().into_iter().map(|s| s.to_string()));
+    println!("Fetching other surbeddits...");
+    get_posts_with_urls(it, &mut urls);
+    println!("Other subreddits found");
+    let reposts_stats = get_reposts_stats(subreddit, &urls).sort(10).display(urls.subreddits);
+    println!("{:#?}", reposts_stats);
+}
+
 
 fn main() {
     let matches = App::new("Reddit Repost")
@@ -65,7 +80,7 @@ fn main() {
                          .help("Set the output file path")
                          .short("o")
                          .long("output")))
-        .subcommand(SubCommand::with_name("compute_subs_stats")
+        .subcommand(SubCommand::with_name("compute_stats")
                     .about("Computes general statistics of subreddits")
                     .arg(Arg::with_name("OUTPUT")
                          .help("Set the output file path")
@@ -97,7 +112,7 @@ fn main() {
                          .multiple(true)
                          .min_values(1)
                          .index(4)))
-        .subcommand(SubCommand::with_name("get_subs_stats")
+        .subcommand(SubCommand::with_name("get_stats")
                     .about("Get the stats of a subreddit from a previously pre-computed file")
                     .arg(Arg::with_name("STATS_FILE")
                          .help("The stats file computed by the compute_subs_stats command")
@@ -107,6 +122,18 @@ fn main() {
                          .help("The name of the subreddits")
                          .required(true)
                          .index(2)
+                         .multiple(true)))
+        .subcommand(SubCommand::with_name("get_reposts")
+                    .about("Get the number of post reposted by the sub, and by other subs over a url sent first on that sub")
+                    .arg(Arg::with_name("SUBREDDIT")
+                         .help("The name of the subreddit to analyse")
+                         .required(true)
+                         .index(1))
+                    .arg(Arg::with_name("INPUTS")
+                         .help("The dataset files created by the simplify command")
+                         .required(true)
+                         .index(2)
+                         .min_values(1)
                          .multiple(true)))
         .get_matches();
 
@@ -123,7 +150,7 @@ fn main() {
         return;
     }
 
-    if let Some(matches) = matches.subcommand_matches("compute_subs_stats") {
+    if let Some(matches) = matches.subcommand_matches("compute_stats") {
         let filepaths: Vec<_> = matches.values_of("INPUTS").unwrap().collect();
         let output_filepath = matches.value_of("OUTPUT").unwrap();
         let it = CSVItemIterator::<RedditPost,_>::new(filepaths.into_iter().map(|s| s.to_string()));
@@ -142,11 +169,17 @@ fn main() {
         return;
     }
 
-    if let Some(matches) = matches.subcommand_matches("get_subs_stats") {
+    if let Some(matches) = matches.subcommand_matches("get_stats") {
         let stats_filepath = matches.value_of("STATS_FILE").unwrap();
         let subreddits: Vec<_> = matches.values_of("SUBREDDITS").unwrap().collect();
         get_subreddit_stats(stats_filepath, subreddits);
         return;
+    }
+
+    if let Some(matches) = matches.subcommand_matches("get_reposts") {
+        let subreddit = matches.value_of("SUBREDDIT").unwrap();
+        let inputs_filepath = matches.values_of("INPUTS").unwrap().collect();
+        get_reposts(subreddit, inputs_filepath);
     }
 }
 
