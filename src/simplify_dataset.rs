@@ -6,7 +6,7 @@ use serde::Deserialize;
 use std::borrow::Cow;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::{BufReader, BufWriter};
+use std::io::BufReader;
 
 /// Simplify a post dataset by removing the unused fields
 /// Write the new dataset in a new file
@@ -14,7 +14,7 @@ use std::io::{BufReader, BufWriter};
 pub fn simplify_post_dataset(filepath: &str, new_filepath: &str, keep_non_url_posts: bool) {
     let file = File::open(filepath).unwrap();
     let reader = BufReader::new(file);
-    let mut writer = csv::Writer::from_path(filepath).unwrap();
+    let mut writer = csv::Writer::from_path(new_filepath).unwrap();
     for line in reader.lines() {
         let line = line.unwrap();
         let post = serde_json::from_str::<RedditPostJSON>(&line);
