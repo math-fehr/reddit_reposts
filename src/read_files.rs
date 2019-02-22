@@ -73,3 +73,69 @@ where
         }
     }
 }
+
+
+/// An iterator iterating through multiple files,
+/// to deserialize CSV objects into a given struct
+pub struct CSVItemIterator<S, FPI>
+where
+    FPI: Iterator<Item = String>,
+    S: DeserializeOwned,
+{
+    filepath_iterator: FPI,
+    current_reader: Option<csv::DeserializeRecordsIntoIter<File, S>>,
+    json_struct_type: std::marker::PhantomData<S>,
+}
+
+impl<S, FPI> Clone for CSVItemIterator<S, FPI>
+where
+    FPI: Iterator<Item = String> + Clone,
+    S: DeserializeOwned,
+{
+    fn clone(&self) -> Self {
+        assert!(self.current_reader.is_none());
+        CSVItemIterator {
+            filepath_iterator: self.filepath_iterator.clone(),
+            current_reader: None,
+            json_struct_type: self.json_struct_type,
+        }
+    }
+}
+
+impl<S, FPI> CSVItemIterator<S, FPI>
+where
+    FPI: Iterator<Item = String>,
+    S: DeserializeOwned,
+{
+    /// Create a new iterator, given an iterator over file paths
+    #[allow(dead_code)]
+    pub fn new(filepath_iterator: FPI) -> Self {
+        Self {
+            filepath_iterator,
+            current_reader: None,
+            json_struct_type: PhantomData,
+        }
+    }
+}
+
+impl<S, FPI> Iterator for CSVItemIterator<S, FPI>
+where
+    FPI: Iterator<Item = String>,
+    S: DeserializeOwned,
+{
+    type Item = S;
+
+    fn next(&mut self) -> Option<S> {
+        if let Some(reader) = &mut self.current_reader {
+            if let Some(csv_item) = reader.next() {
+                return Some(csv_item.unwrap());
+            }
+        }
+        if let Some(filepath) = self.filepath_iterator.next() {
+            self.current_reader = Some(csv::Reader::from_path(filepath).unwrap().into_deserialize());
+            self.next()
+        } else {
+            None
+        }
+    }
+}
